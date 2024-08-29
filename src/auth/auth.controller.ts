@@ -1,15 +1,8 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto, LoginAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { LoginUserDto } from './dto/login-auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,23 +19,21 @@ export class AuthController {
     return await this.authService.singUp(createAuthDto);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Post('signin-auth0')
+  @ApiOperation({ summary: 'Sign in using third party auth' })
+  async signinAuth(@Body() body: LoginUserDto) {
+    const { email } = body;
+    return await this.authService.signInAuth(email);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Post('signup-auth0')
+  @ApiOperation({ summary: 'Sign up using third party auth' })
+  async signUpAuth(@Body() user: CreateAuthDto) {
+    return await this.authService.signUpAuth(user);
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @Post('signup')
+  @ApiOperation({ summary: 'Sign up entering your own data' })
+  async signup(@Body() user: CreateAuthDto) {
+    return await this.authService.singUp(user);
   }
 }

@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/auth.entity';
+import { User } from '../auth/entities/auth.entity';
 import { Repository } from 'typeorm';
 import { Role } from 'src/enum/role.enum';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserRepository {
@@ -11,31 +16,21 @@ export class UserRepository {
     private userRepository: Repository<User>,
   ) {}
 
-  async getUsers(page: number, limit: number): Promise<Partial<User>[]> {
-    let user = await this.userRepository.find();
-
-    const start = (page - 1) * limit;
-    const end = start + +limit;
-
-    user = user.slice(start, end);
-
-    const userWithoutPassword = user.map(({ password, ...user }) => user);
-    return userWithoutPassword;
+  async getAllUsers(): Promise<User[]> {
+    const users = await this.userRepository.find();
+    if (!users.length) throw new BadRequestException('Users not found');
+    return users;
   }
-  async getUserById(id: string) {
+  async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
+      select: ['id', 'name', 'email', 'phone'],
       relations: {},
     });
-
-    if (!user) {
-      throw new NotFoundException('User Not Found');
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
-  async addUser(user: Partial<User>): Promise<Partial<User>> {
+  async createUser(user: Partial<User>): Promise<Partial<User>> {
     const phone = Number(user.phone);
     const role =
       user.email === 'marcelodaniellencina@gmail.com' ? Role.ADMIN : Role.USER;
@@ -54,7 +49,15 @@ export class UserRepository {
     return newUser;
   }
 
-  async updateUser(id: string, user: User) {
+  async createUserAuth(user: User) {
+    const newUser = await this.userRepository.save(user);
+    return this.userRepository.findOne({
+      where: { id: newUser.id },
+      select: ['id', 'name', 'email', 'phone', 'img'],
+    });
+  }
+
+  async updateUser(id: string, user: UpdateUserDto) {
     await this.userRepository.update(id, user);
     const updateUser = await this.userRepository.findOneBy({ id });
     const { password, ...userWithoutPassword } = updateUser;

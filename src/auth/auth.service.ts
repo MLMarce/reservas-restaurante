@@ -1,10 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from './entities/auth.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { UserRepository } from './users.repository';
-
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { UserRepository } from 'src/user/user.repository';
 @Injectable()
 export class AuthService {
   constructor(
@@ -17,6 +20,10 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('Invalid email or password');
     }
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword)
+      throw new UnauthorizedException('invalid credentials');
 
     const payload = {
       id: user.id,
@@ -44,27 +51,50 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const { password: password1, ...userWithoutPassword } =
-      await this.userRepository.addUser({
+      await this.userRepository.createUser({
         ...user,
         password: hashedPassword,
       });
 
     return userWithoutPassword;
   }
+  async signUpAuth(user: CreateAuthDto) {
+    if (!user) throw new BadRequestException('User is required');
+    const userFound = await this.userRepository.getUserByEmail(user.email);
+    if (userFound) {
+      return this.signInAuth(user.email);
+    } else {
+      const newUser = new User();
+      newUser.name = user.name;
+      newUser.email = user.email;
+      newUser.img = user.img;
+      newUser.password = user.name.split(' ').join('').toLowerCase();
 
-  findAll() {
-    return `This action returns all auth`;
+      const createdUser = await this.userRepository.createUserAuth(newUser);
+      if (!createdUser) throw new BadRequestException('Error creating user');
+      return this.signInAuth(createdUser.email);
+    }
   }
+  async signInAuth(email: string) {
+    const user = await this.userRepository.getUserByEmail(email);
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    if (!user) throw new UnauthorizedException('invalid credentials');
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    const userPayload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    const token = this.jwtService.sign(userPayload);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: userpassword, ...userData } = user;
+
+    return {
+      message: 'Logged in successfully',
+      token,
+      userData,
+    };
   }
 }
