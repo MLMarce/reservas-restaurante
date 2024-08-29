@@ -1,4 +1,5 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { Role } from 'src/enum/role.enum';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
@@ -29,7 +30,6 @@ export class User {
 
   @Column({
     type: 'bigint',
-    length: 255,
     nullable: true,
   })
   phone: number;
@@ -41,9 +41,14 @@ export class User {
   })
   img: string;
 
-  @OneToMany(
-    () => Appointment,
-    (appointment) => appointment.user,
-  )
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.USER,
+    comment: 'El rol del usuario',
+  })
+  role: Role;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.user)
   appointments: Appointment[];
 }

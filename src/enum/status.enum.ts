@@ -1,4 +1,4 @@
 export enum Status {
-    AVAILABLE = 'available',
-    OCCUPIED = 'occupied'
+  AVAILABLE = 'available',
+  OCCUPIED = 'occupied',
 }

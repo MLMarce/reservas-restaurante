@@ -1,4 +1,4 @@
 export enum Ubication {
-    INSIDE = 'inside',
-    OUTSIDE = 'outside'
+  INSIDE = 'inside',
+  OUTSIDE = 'outside',
 }
