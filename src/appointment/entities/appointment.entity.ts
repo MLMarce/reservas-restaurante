@@ -15,7 +15,6 @@ export class Appointment {
 
   @Column({
     type: 'float',
-    precision: 2,
   })
   total: number;
 

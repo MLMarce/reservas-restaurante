@@ -29,6 +29,7 @@ export class AuthController {
   @Post('signup-auth0')
   @ApiOperation({ summary: 'Sign up using third party auth' })
   async signUpAuth(@Body() user: CreateAuthDto) {
+    console.log('llegamos..', user);
     return await this.authService.signUpAuth(user);
   }
   @Post('signup')
