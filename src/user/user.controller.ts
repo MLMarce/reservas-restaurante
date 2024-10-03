@@ -25,31 +25,32 @@ export class UserController {
   @ApiOperation({ summary: 'Get all users' })
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard, RolesGuard)
-  findAll() {
-    return this.userService.findAll();
+  async findAll() {
+    return await this.userService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get user by id' })
   @UseGuards(AuthGuard)
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.findOne(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    console.log(id, 'id usuario');
+    return await this.userService.findOne(id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update user by id' })
   @UseGuards(AuthGuard)
-  update(
+  async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.update(id, updateUserDto);
+    return await this.userService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete user by id' })
   @UseGuards(AuthGuard, RolesGuard)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.remove(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.userService.remove(id);
   }
 }
