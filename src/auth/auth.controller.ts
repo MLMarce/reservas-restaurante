@@ -8,15 +8,10 @@ import { LoginUserDto } from './dto/login-auth.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('singin')
+  @Post('signin')
   async singIn(@Body() loginAuthDto: LoginAuthDto) {
     const { email, password } = loginAuthDto;
-    return await this.authService.singIn(email, password);
-  }
-
-  @Post('singup')
-  async singUp(@Body() createAuthDto: CreateAuthDto) {
-    return await this.authService.singUp(createAuthDto);
+    return await this.authService.signIn(email, password);
   }
 
   @Post('signin-auth0')
@@ -34,7 +29,7 @@ export class AuthController {
   }
   @Post('signup')
   @ApiOperation({ summary: 'Sign up entering your own data' })
-  async signup(@Body() user: CreateAuthDto) {
-    return await this.authService.singUp(user);
+  async signUp(@Body() user: CreateAuthDto) {
+    return await this.authService.signUp(user);
   }
 }

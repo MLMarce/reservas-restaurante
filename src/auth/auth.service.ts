@@ -14,7 +14,7 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
   ) {}
-  async singIn(email: string, password: string) {
+  async signIn(email: string, password: string) {
     const user = await this.userRepository.getUserByEmail(email);
 
     if (!user) {
@@ -39,7 +39,7 @@ export class AuthService {
       message: 'User logger in successfully',
     };
   }
-  async singUp(user: Partial<User>) {
+  async signUp(user: Partial<User>) {
     const { email, password } = user;
 
     const foundUser = await this.userRepository.getUserByEmail(email);
@@ -62,7 +62,7 @@ export class AuthService {
     if (!user) throw new BadRequestException('User is required');
     const userFound = await this.userRepository.getUserByEmail(user.email);
     if (userFound) {
-      return this.signInAuth(user.email);
+      return await this.signInAuth(user.email);
     } else {
       const newUser = new User();
       newUser.name = user.name;
