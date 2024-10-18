@@ -1,26 +1,59 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
+import { Table } from './entities/table.entity';
+import { Status } from 'src/enum/status.enum';
 
 @Injectable()
 export class TableService {
-  create(createTableDto: CreateTableDto) {
-    return 'This action adds a new table';
+  constructor(
+    @InjectRepository(Table)
+    private readonly tableRepository: Repository<Table>,
+  ) {}
+
+  async create(createTableDto: CreateTableDto) {
+    const newTable = this.tableRepository.create({
+      number: createTableDto.number,
+      status: createTableDto.status,
+      capacity: createTableDto.capacity,
+      ubication: createTableDto.ubication,
+    });
+    return await this.tableRepository.save(newTable);
   }
 
-  findAll() {
-    return `This action returns all table`;
+  async findAll() {
+    return await this.tableRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} table`;
+  async findOne(id: string) {
+    return await this.tableRepository.findOne({ where: { id } });
   }
 
-  update(id: number, updateTableDto: UpdateTableDto) {
-    return `This action updates a #${id} table`;
+  async update(id: string, updateTableDto: UpdateTableDto): Promise<Table> {
+    const table = await this.findOne(id);
+    if (!table) {
+      throw new Error(`Table with ID ${id} not found`);
+    }
+    Object.assign(table, updateTableDto);
+    return await this.tableRepository.save(table);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} table`;
+  async remove(id: string) {
+    const tableRemove = this.findOne(id);
+    if (!tableRemove) {
+      throw new BadRequestException(`Table with ID ${id} not found`);
+    }
+    await this.tableRepository.delete(id);
+  }
+
+  async resetAllTables(): Promise<void> {
+    await this.tableRepository
+      .createQueryBuilder()
+      .update(Table)
+      .set({ status: Status.AVAILABLE })
+      .where('status = :status', { status: Status.OCCUPIED })
+      .execute();
   }
 }

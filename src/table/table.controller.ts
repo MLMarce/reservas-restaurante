@@ -27,16 +27,16 @@ export class TableController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.tableService.findOne(+id);
+    return this.tableService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTableDto: UpdateTableDto) {
-    return this.tableService.update(+id, updateTableDto);
+    return this.tableService.update(id, updateTableDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.tableService.remove(+id);
+    return this.tableService.remove(id);
   }
 }
